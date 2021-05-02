@@ -20,19 +20,23 @@ if(opt.use_gpu):
 f = open(opt.out,'w')
 files = os.listdir(opt.dir0)
 
+dists = []
 for file in files:
-	if(os.path.exists(os.path.join(opt.dir1,file))):
-		# Load images
-		img0 = lpips.im2tensor(lpips.load_image(os.path.join(opt.dir0,file))) # RGB image from [-1,1]
-		img1 = lpips.im2tensor(lpips.load_image(os.path.join(opt.dir1,file)))
+  if(os.path.exists(os.path.join(opt.dir1,file))):
+    # Load images
+    img0 = lpips.im2tensor(lpips.load_image(os.path.join(opt.dir0,file))) # RGB image from [-1,1]
+    img1 = lpips.im2tensor(lpips.load_image(os.path.join(opt.dir1,file)))
 
-		if(opt.use_gpu):
-			img0 = img0.cuda()
-			img1 = img1.cuda()
+    if(opt.use_gpu):
+      img0 = img0.cuda()
+      img1 = img1.cuda()
 
-		# Compute distance
-		dist01 = loss_fn.forward(img0,img1)
-		print('%s: %.3f'%(file,dist01))
-		f.writelines('%s: %.6f\n'%(file,dist01))
+    # Compute distance
+    dist01 = loss_fn.forward(img0,img1)
+    print('%s: %.3f'%(file,dist01))
+    f.writelines('%s: %.6f\n'%(file,dist01))
+    dists.append(dist01.cpu().detach().numpy())
+mean = np.mean(np.array(dists))
+print(mean)
 
 f.close()
